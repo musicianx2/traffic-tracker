@@ -97,3 +97,17 @@ dotnet build TrafficTracker.csproj -c Debug
 - Zaman-bazlı kural otomasyonu (ör. gece 00–06 arası şu trafiği engelle).
 - `WaaSMedicSvc` için registry sahiplik devralma (korumalı servisi tam kilitleme).
 - Hız sınırlama motoru için gerçek-dünya testi ve ince ayar.
+
+## Lisans
+
+Bu projenin kendi kaynak kodu **MIT** lisansı altındadır — bkz. [LICENSE](LICENSE).
+
+Proje bazı üçüncü taraf bileşenleri kullanır ve bunlar kendi lisanslarına tabidir
+(kâr amacı güdülmez):
+
+- **WinDivert** (`libs/windivert/`) — **LGPLv3 / GPLv2**, © basil00. Bu projede
+  LGPLv3 koşulları altında, DLL'e dinamik bağlanarak kullanılır. Lisans metni:
+  [libs/windivert/LICENSE-WinDivert.txt](libs/windivert/LICENSE-WinDivert.txt).
+- **Microsoft.Diagnostics.Tracing.TraceEvent** — MIT, © Microsoft (NuGet).
+
+Ayrıntılar için [THIRD-PARTY-NOTICES.md](THIRD-PARTY-NOTICES.md).
