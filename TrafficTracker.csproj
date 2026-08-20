@@ -1,0 +1,38 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <OutputType>WinExe</OutputType>
+    <TargetFramework>net8.0-windows</TargetFramework>
+    <Nullable>enable</Nullable>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <UseWPF>true</UseWPF>
+    <UseWindowsForms>true</UseWindowsForms>
+    <AssemblyName>TrafficTracker</AssemblyName>
+    <RootNamespace>TrafficTracker</RootNamespace>
+    <LangVersion>latest</LangVersion>
+    <ApplicationManifest>app.manifest</ApplicationManifest>
+  </PropertyGroup>
+
+  <!-- WinForms (tray icon) yalnizca tam-nitelikli kullaniliyor; global using'leri
+       kaldirarak WPF tipleriyle (Application, MessageBox, Point...) cakismayi onle. -->
+  <ItemGroup>
+    <Using Remove="System.Windows.Forms" />
+    <Using Remove="System.Drawing" />
+  </ItemGroup>
+
+  <!-- Program basina bant genisligi olcumu (ETW; Resource Monitor'un kullandigi yontem) -->
+  <ItemGroup>
+    <PackageReference Include="Microsoft.Diagnostics.Tracing.TraceEvent" Version="3.*" />
+  </ItemGroup>
+
+  <!-- WinDivert (gelen+giden hiz sinirlama). DLL ve imzali surucu exe YANINA kopyalanir (Link ile duz). -->
+  <ItemGroup>
+    <None Include="libs\windivert\WinDivert.dll" Link="WinDivert.dll">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+    <None Include="libs\windivert\WinDivert64.sys" Link="WinDivert64.sys">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+  </ItemGroup>
+
+</Project>

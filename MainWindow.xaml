@@ -1,0 +1,511 @@
+<Window x:Class="TrafficTracker.MainWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        Title="Traffic Tracker — Ağ İzleyici + Kesici (Faz 2)"
+        Height="740" Width="1180"
+        Background="{StaticResource Bg}"
+        Foreground="{StaticResource Fg}"
+        FontFamily="Segoe UI" FontSize="13"
+        WindowStartupLocation="CenterScreen">
+
+    <Window.Resources>
+        <Style TargetType="TextBlock">
+            <Setter Property="Foreground" Value="{StaticResource Fg}"/>
+            <Setter Property="VerticalAlignment" Value="Center"/>
+        </Style>
+
+        <Style TargetType="DataGrid">
+            <Setter Property="Background" Value="{StaticResource BgPanel}"/>
+            <Setter Property="Foreground" Value="{StaticResource Fg}"/>
+            <Setter Property="RowBackground" Value="{StaticResource BgRow}"/>
+            <Setter Property="AlternatingRowBackground" Value="{StaticResource BgRowAlt}"/>
+            <Setter Property="BorderBrush" Value="{StaticResource Border}"/>
+            <Setter Property="GridLinesVisibility" Value="Horizontal"/>
+            <Setter Property="HorizontalGridLinesBrush" Value="{StaticResource Border}"/>
+            <Setter Property="RowHeaderWidth" Value="0"/>
+            <Setter Property="AutoGenerateColumns" Value="False"/>
+            <Setter Property="IsReadOnly" Value="True"/>
+            <Setter Property="SelectionMode" Value="Extended"/>
+            <Setter Property="EnableRowVirtualization" Value="True"/>
+            <Setter Property="ColumnHeaderHeight" Value="32"/>
+        </Style>
+
+        <Style TargetType="DataGridColumnHeader">
+            <Setter Property="Background" Value="#232833"/>
+            <Setter Property="Foreground" Value="{StaticResource FgDim}"/>
+            <Setter Property="FontWeight" Value="SemiBold"/>
+            <Setter Property="Padding" Value="10,6"/>
+            <Setter Property="BorderBrush" Value="{StaticResource Border}"/>
+            <Setter Property="BorderThickness" Value="0,0,1,1"/>
+            <Setter Property="HorizontalContentAlignment" Value="Left"/>
+        </Style>
+
+        <Style TargetType="DataGridCell">
+            <Setter Property="BorderThickness" Value="0"/>
+            <Setter Property="Padding" Value="8,4"/>
+            <Style.Triggers>
+                <Trigger Property="IsSelected" Value="True">
+                    <Setter Property="Background" Value="#2D4A7C"/>
+                    <Setter Property="Foreground" Value="White"/>
+                </Trigger>
+            </Style.Triggers>
+        </Style>
+
+        <Style x:Key="CheckStyle" TargetType="CheckBox">
+            <Setter Property="Foreground" Value="{StaticResource Fg}"/>
+            <Setter Property="VerticalAlignment" Value="Center"/>
+            <Setter Property="Margin" Value="12,0,0,0"/>
+        </Style>
+
+        <Style x:Key="ToolBtn" TargetType="Button">
+            <Setter Property="Background" Value="{StaticResource BgRow}"/>
+            <Setter Property="Foreground" Value="{StaticResource Fg}"/>
+            <Setter Property="BorderBrush" Value="{StaticResource Border}"/>
+            <Setter Property="BorderThickness" Value="1"/>
+            <Setter Property="Padding" Value="12,5"/>
+            <Setter Property="Margin" Value="0,0,8,0"/>
+            <Setter Property="Cursor" Value="Hand"/>
+        </Style>
+
+        <!-- Bilgi paneli (info) -->
+        <Style x:Key="InfoExpander" TargetType="Expander">
+            <Setter Property="Foreground" Value="{StaticResource Accent}"/>
+            <Setter Property="FontWeight" Value="SemiBold"/>
+            <Setter Property="Margin" Value="8,8,8,0"/>
+        </Style>
+        <Style x:Key="InfoText" TargetType="TextBlock">
+            <Setter Property="Foreground" Value="{StaticResource Fg}"/>
+            <Setter Property="FontWeight" Value="Normal"/>
+            <Setter Property="TextWrapping" Value="Wrap"/>
+            <Setter Property="LineHeight" Value="20"/>
+            <Setter Property="Margin" Value="4,8,4,4"/>
+        </Style>
+
+        <!-- Koyu tema sekme basl1klar1 -->
+        <Style TargetType="TabItem">
+            <Setter Property="Foreground" Value="{StaticResource FgDim}"/>
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="TabItem">
+                        <Border x:Name="b" Background="{StaticResource BgPanel}"
+                                BorderBrush="{StaticResource Border}" BorderThickness="1,1,1,0"
+                                Padding="16,8" Margin="0,0,4,0" CornerRadius="6,6,0,0">
+                            <ContentPresenter ContentSource="Header"
+                                              TextElement.Foreground="{TemplateBinding Foreground}"
+                                              TextElement.FontWeight="SemiBold"/>
+                        </Border>
+                        <ControlTemplate.Triggers>
+                            <Trigger Property="IsSelected" Value="True">
+                                <Setter TargetName="b" Property="Background" Value="{StaticResource BgRowAlt}"/>
+                                <Setter Property="Foreground" Value="{StaticResource Fg}"/>
+                            </Trigger>
+                        </ControlTemplate.Triggers>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+    </Window.Resources>
+
+    <Grid Margin="14">
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="*"/>
+            <RowDefinition Height="Auto"/>
+        </Grid.RowDefinitions>
+
+        <!-- Baslik -->
+        <DockPanel Grid.Row="0" Margin="0,0,0,10" LastChildFill="False">
+            <StackPanel Orientation="Horizontal" DockPanel.Dock="Left">
+                <TextBlock Text="🛰  Traffic Tracker" FontSize="20" FontWeight="Bold"/>
+                <TextBlock Text="izle · gör · kes" Foreground="{StaticResource FgDim}"
+                           Margin="12,0,0,0" VerticalAlignment="Bottom" FontSize="13"/>
+            </StackPanel>
+
+            <Border DockPanel.Dock="Right" Background="{StaticResource BgPanel}"
+                    BorderBrush="{StaticResource Border}" BorderThickness="1" CornerRadius="6"
+                    Padding="10,5">
+                <StackPanel Orientation="Horizontal">
+                    <TextBlock Text="🌐 Dış IP:" Foreground="{StaticResource FgDim}" Margin="0,0,6,0"/>
+                    <TextBlock x:Name="PublicIpText" Text="alınıyor…" FontWeight="SemiBold"
+                               Foreground="{StaticResource Accent}"
+                               ToolTip="Bilgisayarınızın dışarıdan görünen genel IP adresi. Çift tıkla → kopyala."
+                               MouseLeftButtonUp="PublicIp_Copy"/>
+                    <Button Content="⟳" Width="26" Height="24" Margin="8,0,0,0"
+                            Background="{StaticResource BgRow}" Foreground="{StaticResource Fg}"
+                            BorderBrush="{StaticResource Border}" Cursor="Hand"
+                            ToolTip="Yenile" Click="RefreshPublicIp_Click"/>
+                </StackPanel>
+            </Border>
+        </DockPanel>
+
+        <TabControl x:Name="MainTabs" Grid.Row="1" Background="Transparent" BorderThickness="0" Padding="0,6,0,0"
+                    SelectionChanged="MainTabs_SelectionChanged">
+
+            <!-- ============ BAGLANTILAR ============ -->
+            <TabItem Header="Bağlantılar">
+                <DockPanel Background="{StaticResource BgRowAlt}" LastChildFill="True">
+
+                    <!-- Canli hiz grafigi -->
+                    <Border DockPanel.Dock="Top" Background="{StaticResource BgPanel}"
+                            BorderBrush="{StaticResource Border}" BorderThickness="1" CornerRadius="6"
+                            Padding="10" Margin="8,8,8,0" Height="92">
+                        <Grid>
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="Auto"/>
+                                <ColumnDefinition Width="*"/>
+                            </Grid.ColumnDefinitions>
+                            <StackPanel Grid.Column="0" VerticalAlignment="Center" Margin="0,0,18,0" MinWidth="120">
+                                <TextBlock Text="Anlık ağ hızı" Foreground="{StaticResource FgDim}" FontSize="12"/>
+                                <StackPanel Orientation="Horizontal" Margin="0,4,0,0">
+                                    <TextBlock Text="↓" Foreground="{StaticResource Good}" FontWeight="Bold" Margin="0,0,4,0"/>
+                                    <TextBlock x:Name="DownText" Text="0 B/s" FontWeight="SemiBold" MinWidth="80"/>
+                                </StackPanel>
+                                <StackPanel Orientation="Horizontal" Margin="0,2,0,0">
+                                    <TextBlock Text="↑" Foreground="{StaticResource Accent}" FontWeight="Bold" Margin="0,0,4,0"/>
+                                    <TextBlock x:Name="UpText" Text="0 B/s" FontWeight="SemiBold" MinWidth="80"/>
+                                </StackPanel>
+                            </StackPanel>
+                            <Canvas Grid.Column="1" x:Name="SpeedCanvas" ClipToBounds="True"
+                                    Background="#12151C">
+                                <Polyline x:Name="DownLine" Stroke="{StaticResource Good}" StrokeThickness="1.5"/>
+                                <Polyline x:Name="UpLine" Stroke="{StaticResource Accent}" StrokeThickness="1.5"/>
+                            </Canvas>
+                        </Grid>
+                    </Border>
+
+                    <!-- Arac cubugu -->
+                    <Border DockPanel.Dock="Top" Background="{StaticResource BgPanel}"
+                            BorderBrush="{StaticResource Border}" BorderThickness="1" CornerRadius="6"
+                            Padding="10" Margin="8">
+                        <Grid>
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="Auto"/>
+                                <ColumnDefinition Width="*"/>
+                                <ColumnDefinition Width="Auto"/>
+                            </Grid.ColumnDefinitions>
+
+                            <StackPanel Grid.Column="0" Orientation="Horizontal">
+                                <TextBlock Text="🔎" Margin="2,0,6,0"/>
+                                <TextBox x:Name="FilterBox" Width="240" Height="26"
+                                         Background="{StaticResource BgRow}" Foreground="{StaticResource Fg}"
+                                         BorderBrush="{StaticResource Border}" VerticalContentAlignment="Center"
+                                         Padding="6,0" TextChanged="FilterBox_TextChanged"
+                                         ToolTip="Program, IP, host, port veya duruma göre filtrele"/>
+                            </StackPanel>
+
+                            <StackPanel Grid.Column="1" Orientation="Horizontal">
+                                <CheckBox x:Name="HideLocalCheck" Style="{StaticResource CheckStyle}"
+                                          Content="Yerel/dinleme gizle" IsChecked="True"
+                                          Checked="Filter_Changed" Unchecked="Filter_Changed"/>
+                                <CheckBox x:Name="OnlyEstablishedCheck" Style="{StaticResource CheckStyle}"
+                                          Content="Sadece ESTABLISHED" IsChecked="False"
+                                          Checked="Filter_Changed" Unchecked="Filter_Changed"/>
+                            </StackPanel>
+
+                            <StackPanel Grid.Column="2" Orientation="Horizontal">
+                                <TextBlock Text="Yenileme:" Foreground="{StaticResource FgDim}" Margin="0,0,6,0"/>
+                                <ComboBox x:Name="IntervalCombo" Width="90" Height="26"
+                                          SelectionChanged="IntervalCombo_SelectionChanged"/>
+                                <CheckBox x:Name="PauseCheck" Style="{StaticResource CheckStyle}"
+                                          Content="Duraklat" IsChecked="False"/>
+                            </StackPanel>
+                        </Grid>
+                    </Border>
+
+                    <TextBlock DockPanel.Dock="Bottom" Margin="8,0,8,6" FontSize="12"
+                               Foreground="{StaticResource FgDim}"
+                               Text="İpucu: bir satıra sağ tıkla → programı / IP'yi / portu tek tıkla engelle."/>
+
+                    <DataGrid x:Name="ConnGrid" Margin="8,0,8,4">
+                        <DataGrid.RowStyle>
+                            <Style TargetType="DataGridRow">
+                                <Style.Triggers>
+                                    <DataTrigger Binding="{Binding OverThreshold}" Value="True">
+                                        <Setter Property="Background" Value="#7A1F2B"/>
+                                    </DataTrigger>
+                                </Style.Triggers>
+                            </Style>
+                        </DataGrid.RowStyle>
+                        <DataGrid.ContextMenu>
+                            <ContextMenu>
+                                <MenuItem Header="🚫  Bu programı engelle (tüm ağ)" Click="BlockApp_Click"/>
+                                <MenuItem Header="🚫  Bu IP'yi engelle" Click="BlockIp_Click"/>
+                                <MenuItem Header="🚫  Bu portu engelle" Click="BlockPort_Click"/>
+                                <Separator/>
+                                <MenuItem Header="🐢  Bu programa hız sınırı koy (500/500 KB/s)" Click="ThrottleApp_Click"/>
+                                <Separator/>
+                                <MenuItem Header="📋  Uzak adresi kopyala" Click="CopyRemote_Click"/>
+                            </ContextMenu>
+                        </DataGrid.ContextMenu>
+                        <DataGrid.Columns>
+                            <DataGridTextColumn Header="Program" Binding="{Binding Process}" Width="170"/>
+                            <DataGridTextColumn Header="PID" Binding="{Binding Pid}" Width="65"/>
+                            <DataGridTextColumn Header="Proto" Binding="{Binding Protocol}" Width="58"/>
+                            <DataGridTextColumn Header="Yerel" Binding="{Binding LocalEndpoint}" Width="175"/>
+                            <DataGridTextColumn Header="Uzak (IP / host)" Binding="{Binding RemoteDisplay}" Width="*"/>
+                            <DataGridTextColumn Header="Port" Binding="{Binding RemotePort}" Width="60"/>
+                            <DataGridTextColumn Header="↓/s" Binding="{Binding DownRateText}" Width="90" SortMemberPath="DownRate"/>
+                            <DataGridTextColumn Header="↑/s" Binding="{Binding UpRateText}" Width="90" SortMemberPath="UpRate"/>
+                            <DataGridTextColumn Header="Durum" Binding="{Binding State}" Width="100"/>
+                        </DataGrid.Columns>
+                    </DataGrid>
+                </DockPanel>
+            </TabItem>
+
+            <!-- ============ KURALLAR ============ -->
+            <TabItem Header="Kurallar">
+                <DockPanel Background="{StaticResource BgRowAlt}" LastChildFill="True">
+
+                    <Expander DockPanel.Dock="Top" Style="{StaticResource InfoExpander}"
+                              Header="ℹ  Kurallar nedir, nasıl kural eklerim?" IsExpanded="False">
+                        <Border Background="{StaticResource BgPanel}" BorderBrush="{StaticResource Border}"
+                                BorderThickness="1" CornerRadius="6" Padding="12" Margin="0,4,0,0">
+                            <TextBlock Style="{StaticResource InfoText}">
+                                <Run FontWeight="Bold" Foreground="#4C8BF5">Bu sekme ne işe yarar?</Run><LineBreak/>
+                                Engellediğin her şey burada listelenir; buradan yönetirsin (aç/kapat, sil).<LineBreak/><LineBreak/>
+                                <Run FontWeight="Bold" Foreground="#4C8BF5">Nasıl kural eklenir?</Run><LineBreak/>
+                                "Bağlantılar" sekmesinde bir satıra <Run FontWeight="Bold">sağ tıkla</Run> ve şunlardan birini seç:<LineBreak/>
+                                • <Run FontWeight="Bold">Bu programı engelle</Run> — o uygulamanın (ör. chrome.exe) tüm internet erişimini keser. Program hiçbir yere bağlanamaz.<LineBreak/>
+                                • <Run FontWeight="Bold">Bu IP'yi engelle</Run> — yalnızca o uzak adrese (ör. 20.42.65.90) giden/gelen trafiği keser. Tek bir sunucuyu susturmak için.<LineBreak/>
+                                • <Run FontWeight="Bold">Bu portu engelle</Run> — o uzak porta (ör. TCP 443) giden trafiği keser.<LineBreak/><LineBreak/>
+                                <Run FontWeight="Bold" Foreground="#4C8BF5">Kuralları yönetmek</Run><LineBreak/>
+                                • <Run FontWeight="Bold">Aktif</Run> kutusu: kuralı silmeden anında aç/kapat.<LineBreak/>
+                                • Sağ tık → <Run FontWeight="Bold">Kuralı sil</Run>: kuralı tamamen kaldırır.<LineBreak/>
+                                • Her işlem "Geçmiş" sekmesine kaydedilir; oradan <Run FontWeight="Bold">Geri Al</Run> yapabilirsin.<LineBreak/><LineBreak/>
+                                <Run Foreground="#8A93A6">Kurallar Windows Güvenlik Duvarı'na yazılır ve kalıcıdır — bilgisayarı kapatıp açsan da geçerli kalır.</Run>
+                            </TextBlock>
+                        </Border>
+                    </Expander>
+
+                    <Border DockPanel.Dock="Top" Background="{StaticResource BgPanel}"
+                            BorderBrush="{StaticResource Border}" BorderThickness="1" CornerRadius="6"
+                            Padding="10" Margin="8">
+                        <StackPanel Orientation="Horizontal">
+                            <Button Style="{StaticResource ToolBtn}" Content="🗑  Seçili kuralı sil" Click="DeleteRule_Click"/>
+                            <Button Style="{StaticResource ToolBtn}" Content="♻  Tümünü yeniden uygula" Click="ReapplyAll_Click"/>
+                            <TextBlock Margin="10,0,0,0" Foreground="{StaticResource FgDim}"
+                                       Text="Kurallar Windows Güvenlik Duvarı'na yazılır ve kalıcıdır (yeniden başlatmada da geçerli)."/>
+                        </StackPanel>
+                    </Border>
+
+                    <DataGrid x:Name="RulesGrid" Margin="8" IsReadOnly="False">
+                        <DataGrid.ContextMenu>
+                            <ContextMenu>
+                                <MenuItem Header="🗑  Kuralı sil" Click="DeleteRule_Click"/>
+                            </ContextMenu>
+                        </DataGrid.ContextMenu>
+                        <DataGrid.Columns>
+                            <DataGridTemplateColumn Header="Aktif" Width="60" IsReadOnly="False">
+                                <DataGridTemplateColumn.CellTemplate>
+                                    <DataTemplate>
+                                        <CheckBox IsChecked="{Binding Enabled, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
+                                                  HorizontalAlignment="Center"/>
+                                    </DataTemplate>
+                                </DataGridTemplateColumn.CellTemplate>
+                            </DataGridTemplateColumn>
+                            <DataGridTextColumn Header="Tür" Binding="{Binding KindText}" Width="80" IsReadOnly="True"/>
+                            <DataGridTextColumn Header="Hedef" Binding="{Binding DisplayTarget}" Width="220" IsReadOnly="True"/>
+                            <DataGridTextColumn Header="Proto" Binding="{Binding ProtocolText}" Width="70" IsReadOnly="True"/>
+                            <DataGridTextColumn Header="Yön" Binding="{Binding DirectionText}" Width="90" IsReadOnly="True"/>
+                            <DataGridTextColumn Header="Ayrıntı / Not" Binding="{Binding Note}" Width="*" IsReadOnly="True"/>
+                        </DataGrid.Columns>
+                    </DataGrid>
+                </DockPanel>
+            </TabItem>
+
+            <!-- ============ GECMIS ============ -->
+            <TabItem Header="Geçmiş">
+                <DockPanel Background="{StaticResource BgRowAlt}" LastChildFill="True">
+
+                    <Border DockPanel.Dock="Top" Background="{StaticResource BgPanel}"
+                            BorderBrush="{StaticResource Border}" BorderThickness="1" CornerRadius="6"
+                            Padding="10" Margin="8">
+                        <StackPanel Orientation="Horizontal">
+                            <Button Style="{StaticResource ToolBtn}" Content="↩  Seçili işlemi geri al" Click="RevertHistory_Click"/>
+                            <Button Style="{StaticResource ToolBtn}" Content="🧹  Geçmişi temizle" Click="ClearHistory_Click"/>
+                            <TextBlock Margin="10,0,0,0" Foreground="{StaticResource FgDim}"
+                                       Text="Yaptığın her kural işlemi burada. 'Geri al' işlemi tersine çevirir (silineni geri ekler, ekleneni siler)."/>
+                        </StackPanel>
+                    </Border>
+
+                    <DataGrid x:Name="HistoryGrid" Margin="8">
+                        <DataGrid.ContextMenu>
+                            <ContextMenu>
+                                <MenuItem Header="↩  Bu işlemi geri al" Click="RevertHistory_Click"/>
+                            </ContextMenu>
+                        </DataGrid.ContextMenu>
+                        <DataGrid.Columns>
+                            <DataGridTextColumn Header="Zaman" Binding="{Binding TimeText}" Width="160"/>
+                            <DataGridTextColumn Header="İşlem" Binding="{Binding ActionText}" Width="110"/>
+                            <DataGridTextColumn Header="Tür" Binding="{Binding KindText}" Width="80"/>
+                            <DataGridTextColumn Header="Hedef" Binding="{Binding DisplayTarget}" Width="220"/>
+                            <DataGridTextColumn Header="Ayrıntı / Not" Binding="{Binding Note}" Width="*"/>
+                        </DataGrid.Columns>
+                    </DataGrid>
+                </DockPanel>
+            </TabItem>
+
+            <!-- ============ WINDOWS UPDATE ============ -->
+            <TabItem Header="Windows Update">
+                <DockPanel Background="{StaticResource BgRowAlt}" LastChildFill="True">
+
+                    <Expander DockPanel.Dock="Top" Style="{StaticResource InfoExpander}"
+                              Header="ℹ  Bu sekme ne yapar? (servisler ve kilit ne demek — okumanı öneririm)"
+                              IsExpanded="True">
+                        <Border Background="{StaticResource BgPanel}" BorderBrush="{StaticResource Border}"
+                                BorderThickness="1" CornerRadius="6" Padding="12" Margin="0,4,0,0">
+                            <TextBlock Style="{StaticResource InfoText}">
+                                <Run FontWeight="Bold" Foreground="#4C8BF5">Amaç:</Run>
+                                Windows güncellemelerini tamamen senin kontrolüne almak. Böylece güncelleme kendiliğinden inip diski donduramaz; sen istediğinde açıp güncellersin.<LineBreak/><LineBreak/>
+                                <Run FontWeight="Bold" Foreground="#4C8BF5">Servisler ne işe yarar?</Run><LineBreak/>
+                                • <Run FontWeight="Bold">wuauserv (Windows Update):</Run> güncellemeleri kontrol eder ve indirir. Kapanınca otomatik güncelleme durur.<LineBreak/>
+                                • <Run FontWeight="Bold">UsoSvc (Update Orchestrator):</Run> indirme/kurulumu zamanlar ve tetikler.<LineBreak/>
+                                • <Run FontWeight="Bold" Foreground="#D29922">WaaSMedicSvc (Update Medic):</Run> DİKKAT — bu servis, diğerlerini sen kapatsan bile onları tekrar açmaya çalışır. Kalıcı engel için bunun da kapalı olması gerekir. Korumalı bir servistir; "erişim reddi" verebilir (zaten kapalıysa sorun değil).<LineBreak/>
+                                • <Run FontWeight="Bold">dosvc (Delivery Optimization):</Run> güncelleme parçalarını arka planda indirir/paylaşır.<LineBreak/><LineBreak/>
+                                <Run FontWeight="Bold" Foreground="#4C8BF5">Başlangıç türü ne demek?</Run>
+                                <Run FontWeight="Bold">Otomatik</Run> = açılışta başlar · <Run FontWeight="Bold">Manuel</Run> = gerekince başlar · <Run FontWeight="Bold">Devre dışı</Run> = hiç başlamaz.<LineBreak/><LineBreak/>
+                                <Run FontWeight="Bold" Foreground="#3FB950">🔒 Güncellemeleri Kilitle:</Run>
+                                dört servisi "Devre dışı" yapar ve durdurur, ayrıca otomatik güncellemeyi (NoAutoUpdate) ve Microsoft Store otomatik indirmeyi kapatır. Diski donduran arka plan indirmeleri biter.<LineBreak/>
+                                <Run FontWeight="Bold" Foreground="#D29922">🔓 Kilidi Aç:</Run>
+                                servisleri varsayılana döndürür ve politikaları kaldırır. Sonra Ayarlar → Windows Update'ten güncellemeyi elle yapabilirsin.<LineBreak/><LineBreak/>
+                                <Run Foreground="#8A93A6">Güvenli mi? Evet — her şey geri alınabilir. Yalnızca güvenlik yamalarını ara sıra elle açıp kurmak iyi olur.</Run>
+                            </TextBlock>
+                        </Border>
+                    </Expander>
+
+                    <Border DockPanel.Dock="Top" Background="{StaticResource BgPanel}"
+                            BorderBrush="{StaticResource Border}" BorderThickness="1" CornerRadius="6"
+                            Padding="12" Margin="8">
+                        <StackPanel>
+                            <StackPanel Orientation="Horizontal">
+                                <Button Style="{StaticResource ToolBtn}" Content="🔒  Güncellemeleri KİLİTLE"
+                                        FontWeight="Bold" Click="LockUpdates_Click"/>
+                                <Button Style="{StaticResource ToolBtn}" Content="🔓  Kilidi AÇ (güncellemeye izin ver)"
+                                        Click="UnlockUpdates_Click"/>
+                                <Button Style="{StaticResource ToolBtn}" Content="⟳  Durumu yenile" Click="RefreshUpdates_Click"/>
+                            </StackPanel>
+                            <TextBlock x:Name="UpdatePolicyText" Margin="2,10,0,0" Foreground="{StaticResource FgDim}"
+                                       Text="Durum yükleniyor…"/>
+                        </StackPanel>
+                    </Border>
+
+                    <Border DockPanel.Dock="Bottom" Background="{StaticResource BgPanel}"
+                            BorderBrush="{StaticResource Border}" BorderThickness="1" CornerRadius="6"
+                            Padding="10" Margin="8,0,8,8" MaxHeight="150">
+                        <ScrollViewer VerticalScrollBarVisibility="Auto">
+                            <TextBlock x:Name="UpdateLogText" Foreground="{StaticResource FgDim}" TextWrapping="Wrap"
+                                       Text="İpucu: 'Kilitle' güncelleme servislerini kapatır; 'Kilidi Aç' varsayılana döndürür. WaaSMedicSvc korumalıysa erişim reddi normaldir."/>
+                        </ScrollViewer>
+                    </Border>
+
+                    <DataGrid x:Name="UpdateGrid" Margin="8">
+                        <DataGrid.ContextMenu>
+                            <ContextMenu>
+                                <MenuItem Header="⛔  Bu servisi devre dışı bırak + durdur" Click="SvcDisable_Click"/>
+                                <MenuItem Header="⏹  Sadece durdur" Click="SvcStop_Click"/>
+                                <MenuItem Header="▶  Başlat" Click="SvcStart_Click"/>
+                                <Separator/>
+                                <MenuItem Header="Başlangıç türü: Manuel yap" Click="SvcManual_Click"/>
+                                <MenuItem Header="Başlangıç türü: Otomatik yap" Click="SvcAuto_Click"/>
+                            </ContextMenu>
+                        </DataGrid.ContextMenu>
+                        <DataGrid.Columns>
+                            <DataGridTextColumn Header="Servis" Binding="{Binding Name}" Width="150"/>
+                            <DataGridTextColumn Header="Açıklama" Binding="{Binding Description}" Width="*"/>
+                            <DataGridTextColumn Header="Başlangıç" Binding="{Binding StartText}" Width="120"/>
+                            <DataGridTextColumn Header="Durum" Binding="{Binding StatusText}" Width="120"/>
+                        </DataGrid.Columns>
+                    </DataGrid>
+                </DockPanel>
+            </TabItem>
+
+            <!-- ============ AYARLAR ============ -->
+            <TabItem Header="Ayarlar">
+                <DockPanel Background="{StaticResource BgRowAlt}" LastChildFill="True">
+                    <Border DockPanel.Dock="Top" Background="{StaticResource BgPanel}"
+                            BorderBrush="{StaticResource Border}" BorderThickness="1" CornerRadius="6"
+                            Padding="16" Margin="8">
+                        <StackPanel>
+                            <TextBlock Text="Bant genişliği eşiği" FontSize="15" FontWeight="Bold"/>
+                            <TextBlock Style="{StaticResource InfoText}"
+                                       Text="Bir program bu hızı aşarsa 'Bağlantılar' sekmesinde satırı kırmızı vurgulanır. Böylece çok bant genişliği kullananı hemen görürsün."/>
+
+                            <StackPanel Orientation="Horizontal" Margin="0,12,0,0" VerticalAlignment="Center">
+                                <TextBlock Text="Eşik:" VerticalAlignment="Center" Margin="0,0,8,0"/>
+                                <TextBox x:Name="ThresholdBox" Width="100" Height="28"
+                                         Background="{StaticResource BgRow}" Foreground="{StaticResource Fg}"
+                                         BorderBrush="{StaticResource Border}" VerticalContentAlignment="Center"
+                                         Padding="6,0"/>
+                                <TextBlock Text="KB/s" VerticalAlignment="Center" Margin="8,0,0,0"/>
+                                <CheckBox x:Name="HighlightCheck" Style="{StaticResource CheckStyle}"
+                                          Content="Eşik üstü satırları vurgula" VerticalAlignment="Center"/>
+                            </StackPanel>
+
+                            <StackPanel Orientation="Horizontal" Margin="0,16,0,0">
+                                <Button Style="{StaticResource ToolBtn}" Content="💾  Kaydet" Click="SaveSettings_Click"/>
+                                <TextBlock x:Name="SettingsStatus" VerticalAlignment="Center"
+                                           Foreground="{StaticResource Good}"/>
+                            </StackPanel>
+                        </StackPanel>
+                    </Border>
+
+                    <Border DockPanel.Dock="Top" Background="{StaticResource BgPanel}"
+                            BorderBrush="{StaticResource Border}" BorderThickness="1" CornerRadius="6"
+                            Padding="16" Margin="8,0,8,8">
+                        <TextBlock x:Name="BandwidthInfo" Style="{StaticResource InfoText}"
+                                   Text="Bant genişliği ölçümü başlatılıyor…"/>
+                    </Border>
+
+                    <!-- Program hiz sinirlari (WinDivert) -->
+                    <Border DockPanel.Dock="Top" Background="{StaticResource BgPanel}"
+                            BorderBrush="{StaticResource Border}" BorderThickness="1" CornerRadius="6"
+                            Padding="16" Margin="8,0,8,8">
+                        <StackPanel>
+                            <TextBlock Text="Program hız sınırları  (deneysel · WinDivert)" FontSize="15" FontWeight="Bold"/>
+                            <TextBlock Style="{StaticResource InfoText}"
+                                       Text="Bir programın indirme/yükleme hızını sınırlar. Bağlantılar sekmesinde bir satıra sağ tıkla → 'Hız sınırı koy', sonra aşağıdan değerleri düzenle. 0 = o yönde sınır yok. Etkinleştirince WinDivert sürücüsü devreye girer; kapatınca ağ anında normale döner."/>
+                            <StackPanel Orientation="Horizontal" Margin="0,10,0,0">
+                                <CheckBox x:Name="ThrottleEnableCheck" Style="{StaticResource CheckStyle}" Margin="0"
+                                          Content="Hız sınırlamayı etkinleştir" Click="ThrottleToggle_Click"/>
+                                <TextBlock x:Name="ThrottleStatus" VerticalAlignment="Center" Margin="14,0,0,0"
+                                           Foreground="{StaticResource FgDim}"/>
+                            </StackPanel>
+
+                            <DataGrid x:Name="ThrottleGrid" Margin="0,12,0,0" Height="150" IsReadOnly="False"
+                                      Background="{StaticResource BgRow}">
+                                <DataGrid.Columns>
+                                    <DataGridTextColumn Header="Program" Binding="{Binding DisplayName}" Width="*" IsReadOnly="True"/>
+                                    <DataGridTextColumn Header="↓ KB/s (0=sınırsız)"
+                                                        Binding="{Binding DownKBps, UpdateSourceTrigger=LostFocus}" Width="150"/>
+                                    <DataGridTextColumn Header="↑ KB/s (0=sınırsız)"
+                                                        Binding="{Binding UpKBps, UpdateSourceTrigger=LostFocus}" Width="150"/>
+                                    <DataGridTemplateColumn Header="Aktif" Width="60">
+                                        <DataGridTemplateColumn.CellTemplate>
+                                            <DataTemplate>
+                                                <CheckBox IsChecked="{Binding Enabled, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
+                                                          HorizontalAlignment="Center"/>
+                                            </DataTemplate>
+                                        </DataGridTemplateColumn.CellTemplate>
+                                    </DataGridTemplateColumn>
+                                </DataGrid.Columns>
+                            </DataGrid>
+                            <Button Style="{StaticResource ToolBtn}" Content="🗑  Seçili sınırı sil" Margin="0,8,0,0"
+                                    HorizontalAlignment="Left" Click="DeleteThrottle_Click"/>
+                        </StackPanel>
+                    </Border>
+
+                    <TextBlock/>
+                </DockPanel>
+            </TabItem>
+        </TabControl>
+
+        <!-- Durum cubugu -->
+        <Border Grid.Row="2" Background="{StaticResource BgPanel}" BorderBrush="{StaticResource Border}"
+                BorderThickness="1" CornerRadius="6" Padding="10,6" Margin="0,10,0,0">
+            <StackPanel Orientation="Horizontal">
+                <TextBlock x:Name="StatusText" Text="Başlatılıyor…" Foreground="{StaticResource FgDim}"/>
+                <TextBlock x:Name="AdminHint" Margin="18,0,0,0" Foreground="{StaticResource Warn}"/>
+            </StackPanel>
+        </Border>
+    </Grid>
+</Window>
